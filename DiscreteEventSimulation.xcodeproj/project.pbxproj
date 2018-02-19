@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9116CD0E2037662A0003205F /* Customer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9116CD0C2037662A0003205F /* Customer.cpp */; };
-		9116CD1120377BF00003205F /* Attendant.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9116CD0F20377BF00003205F /* Attendant.cpp */; };
+		9116CD0E2037662A0003205F /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9116CD0C2037662A0003205F /* Event.cpp */; };
 		91D41C402037622F0074A218 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 91D41C3F2037622F0074A218 /* main.cpp */; };
 /* End PBXBuildFile section */
 
@@ -25,10 +24,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		9116CD0C2037662A0003205F /* Customer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Customer.cpp; sourceTree = "<group>"; };
-		9116CD0D2037662A0003205F /* Customer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Customer.hpp; sourceTree = "<group>"; };
-		9116CD0F20377BF00003205F /* Attendant.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Attendant.cpp; sourceTree = "<group>"; };
-		9116CD1020377BF00003205F /* Attendant.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Attendant.hpp; sourceTree = "<group>"; };
+		9116CD0C2037662A0003205F /* Event.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Event.cpp; sourceTree = "<group>"; };
+		9116CD0D2037662A0003205F /* Event.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Event.hpp; sourceTree = "<group>"; };
 		91D41C3C2037622F0074A218 /* DiscreteEventSimulation */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DiscreteEventSimulation; sourceTree = BUILT_PRODUCTS_DIR; };
 		91D41C3F2037622F0074A218 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -64,10 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				91D41C3F2037622F0074A218 /* main.cpp */,
-				9116CD0F20377BF00003205F /* Attendant.cpp */,
-				9116CD1020377BF00003205F /* Attendant.hpp */,
-				9116CD0C2037662A0003205F /* Customer.cpp */,
-				9116CD0D2037662A0003205F /* Customer.hpp */,
+				9116CD0C2037662A0003205F /* Event.cpp */,
+				9116CD0D2037662A0003205F /* Event.hpp */,
 			);
 			path = DiscreteEventSimulation;
 			sourceTree = "<group>";
@@ -130,8 +125,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				91D41C402037622F0074A218 /* main.cpp in Sources */,
-				9116CD0E2037662A0003205F /* Customer.cpp in Sources */,
-				9116CD1120377BF00003205F /* Attendant.cpp in Sources */,
+				9116CD0E2037662A0003205F /* Event.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

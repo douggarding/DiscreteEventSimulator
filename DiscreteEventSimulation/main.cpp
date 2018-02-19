@@ -7,11 +7,10 @@
 //
 
 #include <iostream>
-#include <queue>
+#include <queue> // for the priority queue
 #include <stdlib.h> // For random
 #include <time.h> // Time for seeding random
-#include "Customer.hpp"
-#include "Attendant.hpp"
+#include "Event.hpp"
 
 // Forward declare
 void bankSimulator();
@@ -48,59 +47,24 @@ void bankSimulator(){
 void storeSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
     int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
-    int numberOfCustomers = 0;
+    int currentTime = 0; // Represents current clock time in seconds
+    int timeOfLastEvent = 0;
     int customersServed = 0;
-    Attendant cashiers[10];
+    int cashiers[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    std::priority_queue<Event, std::vector<Event>, std::less<Event>> events; // holds all the events
     
-    for(int i = 0; i < 10; i++){
-        cashiers[i] = Attendant();
-    }
-    Attendant *shortestLine = &cashiers[0]; // Cashier with the smallest line
-    
-    // Process each second of the day. Each loop equals one second.
-    for(int time = 0; time < dayLength; time++){
-        
-        // Every 32 seconds a customer arrives and enters a line
-        if(time % 32 == 0){
-            int randomTime = (rand() % 571) + 30; // Random number between 30-600
-            Customer newCustomer(randomTime);
-            numberOfCustomers++;
-            
-            // Add the customer to the shortest line
-            shortestLine->line.push(newCustomer);
-            shortestLine->totalTimeForAllCustomers += newCustomer.timeToProcess;
-        }
-        
-        // Progress the customers in each line
-        for(Attendant &currCashier : cashiers){
-            
-            // If there's a customer, decrease their time
-            if(currCashier.line.size() > 0){
-                currCashier.line.front().processOneSecond();
-                std::cout << "here 1: " << currCashier.line.front().timeToProcess <<"\n";
-                
-                // Remove customer if finished
-                if(currCashier.line.front().timeToProcess <= 0){
-                    std::cout << "here 2" << "\n";
-                    currCashier.line.pop();
-                    customersServed++;
-                }
-                
-                // Decrease cachier's total time remaining
-                currCashier.totalTimeForAllCustomers--;
-            }
-            
-            // Check to see if this cashier has the shortest line
-            if(currCashier.totalTimeForAllCustomers < shortestLine->totalTimeForAllCustomers){
-                shortestLine = &currCashier;
-            }
-        }
-        
+    // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
+    // Add each of these events to the priority queue of events.
+    for(int time = 0; time < 28800; time += 32){
+        Event arrival = Event(time, "arrival");
+        events.push(arrival);
     }
     
     std::cout << "store simulator" << "\n";
-    std::cout << "Number of Customers: " << numberOfCustomers << "\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
     
 }
 
+
+// Random number between 30-600, represents how long it customer will take with cashier
+// int randomTime = (rand() % 571) + 30;

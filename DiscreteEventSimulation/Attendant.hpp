@@ -11,12 +11,12 @@
 
 #include <stdio.h>
 #include <queue>
-#include "Customer.hpp"
+#include "Event.hpp"
 
 class Attendant{
 public:
     Attendant();
-    std::queue<Customer> line;
+    std::queue<Event> line;
     int totalTimeForAllCustomers;
 };
 
