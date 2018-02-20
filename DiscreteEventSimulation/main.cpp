@@ -66,7 +66,7 @@ void storeSimulator(){
         
         // Adjust time to the time of the current event
         timeOfLastEvent = currentTime;
-        currentTime = event.getExpiration();
+        currentTime = event.timeToExpire;
         
         // If a cashier has time less than the current time, they've been idle since the last event.
         // Also, re-adjust all cashier's times to the current time (reset to zero)
@@ -83,7 +83,7 @@ void storeSimulator(){
         }
         
         // How to process the event if it's someone arriving at checkout
-        if(event.getType() == "arrival"){
+        if(event.type == "arrival"){
             
             // Random number between 30-600, reps how long customer will take with cashier
             int processingTime = (rand() % 571) + 30;
@@ -105,13 +105,13 @@ void storeSimulator(){
             // Add an event for when this customer will finish at checkout. This customer's time
             // will be their processing time + processing time of all customers in front of them
             Event newEvent = Event((processingTime + shortestLine), "finished");
-            newEvent.setArrivalTime(currentTime);
+            newEvent.arrivalTime = currentTime;
             events.push(newEvent);
         }
         
-        else if (event.getType() == "finished"){
+        else if (event.type == "finished"){
             customersServed++;
-            totalWaitTime += (currentTime - event.getArrivalTime());
+            totalWaitTime += (currentTime - event.arrivalTime);
         }
 
     }
@@ -160,14 +160,14 @@ void bankSimulator(){
             
             // Adjust time to the time of the current event
             timeOfLastEvent = currentTime;
-            currentTime = justFinishing.getExpiration();
+            currentTime = justFinishing.timeToExpire;
             
             // Calculate leaving customers total time at bank
-            totalWaitTime += (currentTime - justFinishing.getArrivalTime());
+            totalWaitTime += (currentTime - justFinishing.arrivalTime);
             customersServed++;
             
             // If there's a customer in line
-            if(arrivals.size() != 0 && arrivals.front().getArrivalTime() <= currentTime){
+            if(arrivals.size() != 0 && arrivals.front().arrivalTime <= currentTime){
                 tellersBusy++;
                 
                 // Random number between 30-600, reps how long customer will take with cashier
@@ -176,8 +176,8 @@ void bankSimulator(){
                 // Take event from the arrivals queue and put it in the 'being helped' queue
                 Event newEvent = arrivals.front();
                 arrivals.pop();
-                newEvent.setArrivalTime(newEvent.getExpiration());
-                newEvent.setExpirationTime( (processingTime + currentTime) );
+                newEvent.arrivalTime = newEvent.timeToExpire;
+                newEvent.timeToExpire = (processingTime + currentTime);
                 gettingHelped.push(newEvent);
             }
         }
@@ -193,13 +193,13 @@ void bankSimulator(){
             // Take event from the arrivals queue and put it in the 'being helped' queue
             Event newEvent = arrivals.front();
             arrivals.pop();
-            newEvent.setArrivalTime(newEvent.getExpiration());
-            newEvent.setExpirationTime( (processingTime + currentTime) );
+            newEvent.arrivalTime = newEvent.timeToExpire;
+            newEvent.timeToExpire = (processingTime + currentTime);
             gettingHelped.push(newEvent);
             
             // Adjust time to the time of the current event
             timeOfLastEvent = currentTime;
-            currentTime = newEvent.getExpiration();
+            currentTime = newEvent.timeToExpire;
             
             timeTellerSpentIdle += currentTime - timeOfLastEvent;
         }

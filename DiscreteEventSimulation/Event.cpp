@@ -14,25 +14,6 @@ Event::Event(int timeOfEvent, std::string eventType){
     type = eventType;
 }
 
-std::string Event::getType(){
-    return type;
-}
-
-int Event::getExpiration(){
-    return timeToExpire;
-}
-
-void Event::setArrivalTime(int time){
-    arrivalTime = time;
-}
-
-int Event::getArrivalTime(){
-    return arrivalTime;
-}
-
-void Event::setExpirationTime(int time){
-    timeToExpire = time;
-}
 
 
 
