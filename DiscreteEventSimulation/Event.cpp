@@ -30,5 +30,9 @@ int Event::getArrivalTime(){
     return arrivalTime;
 }
 
+void Event::setExpirationTime(int time){
+    timeToExpire = time;
+}
+
 
 

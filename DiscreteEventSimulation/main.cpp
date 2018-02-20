@@ -134,11 +134,11 @@ void bankSimulator(){
     const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
     int currentTime = 0; // Represents current clock time in seconds
     int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
-    int timeChashierSpentIdle = 0; // Total time at least one cashier spent idle
+    int timeTellerSpentIdle = 0; // Total time at least one cashier spent idle
     int timeOfLastEvent = 0;
     int customersServed = 0;
-    int cashiersBusy = 0;
-    std::priority_queue<Event, std::vector<Event>, std::greater<Event>> tellerQueue; // holds all the events
+    int tellersBusy = 0;
+    std::priority_queue<Event, std::vector<Event>, std::greater<Event>> gettingHelped; // holds all the events
     std::queue<Event> arrivals;
     
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
@@ -151,74 +151,65 @@ void bankSimulator(){
     // Process each event in the queue until the day runs out of time
     while(currentTime < dayLength){
         
-        // 
-        
-        
-        
-        
-        
-        
-        
-        // Get whichever event occurs now, and remove it from queue of events
-        Event event = events.top();
-        events.pop();
-        
-        // Adjust time to the time of the current event
-        timeOfLastEvent = currentTime;
-        currentTime = event.getExpiration();
-        
-        // If a cashier has time less than the current time, they've been idle since the last event.
-        // Also, re-adjust all cashier's times to the current time (reset to zero)
-        bool someoneWasIdle = false;
-        for(int i = 0; i < 10; i++){
-            if(cashiers[i] < currentTime){
-                cashiers[i] = currentTime;
-                someoneWasIdle = true;
+        // If the tellers are all busy, advance to the next time someone finishes
+        if(tellersBusy == 10){
+            // Get whoever finishes now, and remove it from queue of events
+            Event justFinishing = gettingHelped.top();
+            gettingHelped.pop();
+            tellersBusy--;
+            
+            // Adjust time to the time of the current event
+            timeOfLastEvent = currentTime;
+            currentTime = justFinishing.getExpiration();
+            
+            // Calculate leaving customers total time at bank
+            totalWaitTime += (currentTime - justFinishing.getArrivalTime());
+            customersServed++;
+            
+            // If there's a customer in line
+            if(arrivals.size() != 0 && arrivals.front().getArrivalTime() <= currentTime){
+                tellersBusy++;
+                
+                // Random number between 30-600, reps how long customer will take with cashier
+                int processingTime = (rand() % 571) + 30;
+                
+                // Take event from the arrivals queue and put it in the 'being helped' queue
+                Event newEvent = arrivals.front();
+                arrivals.pop();
+                newEvent.setArrivalTime(newEvent.getExpiration());
+                newEvent.setExpirationTime( (processingTime + currentTime) );
+                gettingHelped.push(newEvent);
             }
         }
         
-        if(someoneWasIdle){
-            timeChashierSpentIdle += currentTime - timeOfLastEvent;
-        }
-        
-        // How to process the event if it's someone arriving at checkout
-        if(event.getType() == "arrival"){
+        // If there's an open teller, advance until there's a customer
+        else if(tellersBusy < 10){
+            
+            tellersBusy++;
             
             // Random number between 30-600, reps how long customer will take with cashier
             int processingTime = (rand() % 571) + 30;
             
-            // Find the cashier line with the shortest wait time. The value contained by each
-            // cashier represents the time at which all their customers will have been processed.
-            int lineNumber = 0;
-            int shortestLine = cashiers[0];
-            for(int i = 1; i < 10; i++){
-                if (cashiers[i] < shortestLine){
-                    shortestLine = cashiers[i];
-                    lineNumber = i;
-                }
-            }
+            // Take event from the arrivals queue and put it in the 'being helped' queue
+            Event newEvent = arrivals.front();
+            arrivals.pop();
+            newEvent.setArrivalTime(newEvent.getExpiration());
+            newEvent.setExpirationTime( (processingTime + currentTime) );
+            gettingHelped.push(newEvent);
             
-            // Add this customer's time to the line they've entered.
-            cashiers[lineNumber] += processingTime;
+            // Adjust time to the time of the current event
+            timeOfLastEvent = currentTime;
+            currentTime = newEvent.getExpiration();
             
-            // Add an event for when this customer will finish at checkout. This customer's time
-            // will be their processing time + processing time of all customers in front of them
-            Event newEvent = Event((processingTime + shortestLine), "finished");
-            newEvent.setArrivalTime(currentTime);
-            events.push(newEvent);
+            timeTellerSpentIdle += currentTime - timeOfLastEvent;
         }
         
-        else if (event.getType() == "finished"){
-            customersServed++;
-            totalWaitTime += (currentTime - event.getArrivalTime());
-        }
+    } // End while loop
         
-    }
-    
-    std::cout << "STORE SIMULATOR\n";
+    std::cout << "BANK SIMULATOR\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
     std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
     std::cout << "Percent of time at least one cashier spent idle: ";
-    std::cout << 100 * timeChashierSpentIdle / dayLength << "\n";
+    std::cout << 100 * timeTellerSpentIdle / dayLength << "\n";
     
 }

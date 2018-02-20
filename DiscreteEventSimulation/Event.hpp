@@ -24,6 +24,7 @@ public:
     int getExpiration();
     void setArrivalTime(int time);
     int getArrivalTime();
+    void setExpirationTime(int time);
 };
 
 /**
