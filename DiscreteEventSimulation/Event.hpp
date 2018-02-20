@@ -13,20 +13,16 @@
 #include <string>
 
 struct Event{
-private:
+
+    // Constructor
+    Event(int timeOfEvent, std::string eventType);
     
-public:
-    Event(int timeOfEvent, std::string eventType); // Constructor
-    
-    int timeToExpire; // clock time for when this event should fire and die
-    std::string type;
-    int arrivalTime;
+    // Member variables
+    int timeToExpire; // Clock time for when this event should fire and die
+    std::string type; // Type: whether this is an arrive or leave event
+    int arrivalTime; // Time of arrival for this event (or its associated arrive event)
 
 };
-
-/**
- COMPARISON OPERATOR OVERLOADING
- **/
 
 
 // Operator overloading for <
@@ -34,6 +30,7 @@ inline bool operator< (const Event &lhs, const Event &rhs){
     return lhs.timeToExpire < rhs.timeToExpire;
 }
 
+// Operator overloading for >
 inline bool operator> (const Event &lhs, const Event &rhs){
     return operator<(rhs, lhs);
 }

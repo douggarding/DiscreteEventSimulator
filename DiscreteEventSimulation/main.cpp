@@ -53,7 +53,7 @@ void storeSimulator(){
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
     // Add each of these events to the priority queue of events.
     for(int time = 0; time < 28800; time += 32){
-        Event arrival = Event(time, "arrival");
+        Event arrival = Event(time, "arrive");
         events.push(arrival);
     }
     
@@ -83,7 +83,7 @@ void storeSimulator(){
         }
         
         // How to process the event if it's someone arriving at checkout
-        if(event.type == "arrival"){
+        if(event.type == "arrive"){
             
             // Random number between 30-600, reps how long customer will take with cashier
             int processingTime = (rand() % 571) + 30;
@@ -104,12 +104,12 @@ void storeSimulator(){
             
             // Add an event for when this customer will finish at checkout. This customer's time
             // will be their processing time + processing time of all customers in front of them
-            Event newEvent = Event((processingTime + shortestLine), "finished");
+            Event newEvent = Event((processingTime + shortestLine), "leave");
             newEvent.arrivalTime = currentTime;
             events.push(newEvent);
         }
         
-        else if (event.type == "finished"){
+        else if (event.type == "leave"){
             customersServed++;
             totalWaitTime += (currentTime - event.arrivalTime);
         }
@@ -144,7 +144,7 @@ void bankSimulator(){
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
     // Add each of these events to the priority queue of events.
     for(int time = 0; time < 28800; time += 32){
-        Event arrival = Event(time, "arrival");
+        Event arrival = Event(time, "arrive");
         arrivals.push(arrival);
     }
     
