@@ -12,7 +12,7 @@
 #include <time.h> // Time for seeding random
 #include "Event.hpp"
 
-// Forward declare
+// Forward declare functions
 void bankSimulator();
 void storeSimulator();
 
@@ -29,7 +29,6 @@ int main(int argc, const char * argv[]) {
     else if(strcmp(argv[1], "supermarket") == 0){
         storeSimulator();
     }
-    
     else {
         std::cout << "Incorrect argument." << "\n";
     }
@@ -38,20 +37,18 @@ int main(int argc, const char * argv[]) {
 }
 
 
-void bankSimulator(){
-    
-    std::cout << "bank simulator" << "\n";
-}
 
 
 void storeSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
-    int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
+    const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
     int currentTime = 0; // Represents current clock time in seconds
+    int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
+    int timeChashierSpentIdle = 0; // Total time at least one cashier spent idle
     int timeOfLastEvent = 0;
     int customersServed = 0;
     int cashiers[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    std::priority_queue<Event, std::vector<Event>, std::less<Event>> events; // holds all the events
+    std::priority_queue<Event, std::vector<Event>, std::greater<Event>> events; // holds all the events
     
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
     // Add each of these events to the priority queue of events.
@@ -60,11 +57,168 @@ void storeSimulator(){
         events.push(arrival);
     }
     
-    std::cout << "store simulator" << "\n";
+    // Process each event in the queue until the day runs out of time
+    while(currentTime < dayLength){
+        
+        // Get whichever event occurs now, and remove it from queue of events
+        Event event = events.top();
+        events.pop();
+        
+        // Adjust time to the time of the current event
+        timeOfLastEvent = currentTime;
+        currentTime = event.getExpiration();
+        
+        // If a cashier has time less than the current time, they've been idle since the last event.
+        // Also, re-adjust all cashier's times to the current time (reset to zero)
+        bool someoneWasIdle = false;
+        for(int i = 0; i < 10; i++){
+            if(cashiers[i] < currentTime){
+                cashiers[i] = currentTime;
+                someoneWasIdle = true;
+            }
+        }
+        
+        if(someoneWasIdle){
+            timeChashierSpentIdle += currentTime - timeOfLastEvent;
+        }
+        
+        // How to process the event if it's someone arriving at checkout
+        if(event.getType() == "arrival"){
+            
+            // Random number between 30-600, reps how long customer will take with cashier
+            int processingTime = (rand() % 571) + 30;
+            
+            // Find the cashier line with the shortest wait time. The value contained by each
+            // cashier represents the time at which all their customers will have been processed.
+            int lineNumber = 0;
+            int shortestLine = cashiers[0];
+            for(int i = 1; i < 10; i++){
+                if (cashiers[i] < shortestLine){
+                    shortestLine = cashiers[i];
+                    lineNumber = i;
+                }
+            }
+            
+            // Add this customer's time to the line they've entered.
+            cashiers[lineNumber] += processingTime;
+            
+            // Add an event for when this customer will finish at checkout. This customer's time
+            // will be their processing time + processing time of all customers in front of them
+            Event newEvent = Event((processingTime + shortestLine), "finished");
+            newEvent.setArrivalTime(currentTime);
+            events.push(newEvent);
+        }
+        
+        else if (event.getType() == "finished"){
+            customersServed++;
+            totalWaitTime += (currentTime - event.getArrivalTime());
+        }
+
+    }
+    
+    std::cout << "STORE SIMULATOR\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
+    std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
+    std::cout << "Percent of time at least one cashier spent idle: ";
+    std::cout << 100 * timeChashierSpentIdle / dayLength << "\n";
     
 }
 
 
-// Random number between 30-600, represents how long it customer will take with cashier
-// int randomTime = (rand() % 571) + 30;
+
+
+
+
+void bankSimulator(){
+    srand ( (int) time(NULL) ); // seed the RNG
+    const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
+    int currentTime = 0; // Represents current clock time in seconds
+    int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
+    int timeChashierSpentIdle = 0; // Total time at least one cashier spent idle
+    int timeOfLastEvent = 0;
+    int customersServed = 0;
+    int cashiersBusy = 0;
+    std::priority_queue<Event, std::vector<Event>, std::greater<Event>> tellerQueue; // holds all the events
+    std::queue<Event> arrivals;
+    
+    // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
+    // Add each of these events to the priority queue of events.
+    for(int time = 0; time < 28800; time += 32){
+        Event arrival = Event(time, "arrival");
+        arrivals.push(arrival);
+    }
+    
+    // Process each event in the queue until the day runs out of time
+    while(currentTime < dayLength){
+        
+        // 
+        
+        
+        
+        
+        
+        
+        
+        // Get whichever event occurs now, and remove it from queue of events
+        Event event = events.top();
+        events.pop();
+        
+        // Adjust time to the time of the current event
+        timeOfLastEvent = currentTime;
+        currentTime = event.getExpiration();
+        
+        // If a cashier has time less than the current time, they've been idle since the last event.
+        // Also, re-adjust all cashier's times to the current time (reset to zero)
+        bool someoneWasIdle = false;
+        for(int i = 0; i < 10; i++){
+            if(cashiers[i] < currentTime){
+                cashiers[i] = currentTime;
+                someoneWasIdle = true;
+            }
+        }
+        
+        if(someoneWasIdle){
+            timeChashierSpentIdle += currentTime - timeOfLastEvent;
+        }
+        
+        // How to process the event if it's someone arriving at checkout
+        if(event.getType() == "arrival"){
+            
+            // Random number between 30-600, reps how long customer will take with cashier
+            int processingTime = (rand() % 571) + 30;
+            
+            // Find the cashier line with the shortest wait time. The value contained by each
+            // cashier represents the time at which all their customers will have been processed.
+            int lineNumber = 0;
+            int shortestLine = cashiers[0];
+            for(int i = 1; i < 10; i++){
+                if (cashiers[i] < shortestLine){
+                    shortestLine = cashiers[i];
+                    lineNumber = i;
+                }
+            }
+            
+            // Add this customer's time to the line they've entered.
+            cashiers[lineNumber] += processingTime;
+            
+            // Add an event for when this customer will finish at checkout. This customer's time
+            // will be their processing time + processing time of all customers in front of them
+            Event newEvent = Event((processingTime + shortestLine), "finished");
+            newEvent.setArrivalTime(currentTime);
+            events.push(newEvent);
+        }
+        
+        else if (event.getType() == "finished"){
+            customersServed++;
+            totalWaitTime += (currentTime - event.getArrivalTime());
+        }
+        
+    }
+    
+    std::cout << "STORE SIMULATOR\n";
+    std::cout << "Number of Customers served: " << customersServed << "\n";
+    std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
+    std::cout << "Percent of time at least one cashier spent idle: ";
+    std::cout << 100 * timeChashierSpentIdle / dayLength << "\n";
+    
+}
