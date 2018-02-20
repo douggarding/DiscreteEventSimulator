@@ -44,32 +44,31 @@ void storeSimulator(){
     const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
     int currentTime = 0; // Represents current clock time in seconds
     int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
-    int timeChashierSpentIdle = 0; // Total time at least one cashier spent idle
+    int cashierIdleTime = 0; // Total time at least one cashier spent idle
     int timeOfLastEvent = 0;
     int customersServed = 0;
     int cashiers[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::priority_queue<Event, std::vector<Event>, std::greater<Event>> events; // holds all the events
     
-    // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
-    // Add each of these events to the priority queue of events.
+    // Set a customer arrival Event to occur every 32 seconds of the day
     for(int time = 0; time < 28800; time += 32){
-        Event arrival = Event(time, "arrive");
+        Event arrival = Event(time, time, "arrive");
         events.push(arrival);
     }
     
-    // Process each event in the queue until the day runs out of time
+    // Process each event in the priority queue until the day ends
     while(currentTime < dayLength){
         
-        // Get whichever event occurs now, and remove it from queue of events
+        // Get whichever event occurs now, and remove it from event queue
         Event event = events.top();
         events.pop();
         
-        // Adjust time to the time of the current event
+        // Adjust time to the current time (time of event)
         timeOfLastEvent = currentTime;
-        currentTime = event.timeToExpire;
+        currentTime = event.eventTime;
         
         // If a cashier has time less than the current time, they've been idle since the last event.
-        // Also, re-adjust all cashier's times to the current time (reset to zero)
+        // Re-adjust all cashier's times to the current time (reset to zero).
         bool someoneWasIdle = false;
         for(int i = 0; i < 10; i++){
             if(cashiers[i] < currentTime){
@@ -77,52 +76,59 @@ void storeSimulator(){
                 someoneWasIdle = true;
             }
         }
-        
         if(someoneWasIdle){
-            timeChashierSpentIdle += currentTime - timeOfLastEvent;
+            cashierIdleTime += currentTime - timeOfLastEvent;
         }
         
-        // How to process the event if it's someone arriving at checkout
+        // ******************
+        // PROCESS AN ARRIVAL
+        // ******************
         if(event.type == "arrive"){
             
-            // Random number between 30-600, reps how long customer will take with cashier
-            int processingTime = (rand() % 571) + 30;
+            // Random number between 30-600, represents how long customer will take with cashier
+            int timeNeededWithCashier = (rand() % 571) + 30;
             
             // Find the cashier line with the shortest wait time. The value contained by each
             // cashier represents the time at which all their customers will have been processed.
             int lineNumber = 0;
-            int shortestLine = cashiers[0];
+            int timeLeftOfShortLine = cashiers[0];
             for(int i = 1; i < 10; i++){
-                if (cashiers[i] < shortestLine){
-                    shortestLine = cashiers[i];
+                if (cashiers[i] < timeLeftOfShortLine){
+                    timeLeftOfShortLine = cashiers[i];
                     lineNumber = i;
                 }
             }
             
             // Add this customer's time to the line they've entered.
-            cashiers[lineNumber] += processingTime;
+            cashiers[lineNumber] += timeNeededWithCashier;
             
             // Add an event for when this customer will finish at checkout. This customer's time
             // will be their processing time + processing time of all customers in front of them
-            Event newEvent = Event((processingTime + shortestLine), "leave");
-            newEvent.arrivalTime = currentTime;
-            events.push(newEvent);
+            event.eventTime = timeNeededWithCashier + timeLeftOfShortLine;
+            event.type = "leave";
+            events.push(event);
         }
         
+        // ***************
+        // PROCESS A LEAVE
+        // ***************
         else if (event.type == "leave"){
             customersServed++;
             totalWaitTime += (currentTime - event.arrivalTime);
         }
-
-    }
+    } // End while loop simulating day
     
     std::cout << "STORE SIMULATOR\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
     std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
-    std::cout << "Percent of time at least one cashier spent idle: ";
-    std::cout << 100 * timeChashierSpentIdle / dayLength << "\n";
+    std::cout << "Time at least one cashier spent idle: " << 100 * cashierIdleTime / dayLength << "%\n";
     
 }
+
+
+
+
+
 
 
 
@@ -144,7 +150,7 @@ void bankSimulator(){
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
     // Add each of these events to the priority queue of events.
     for(int time = 0; time < 28800; time += 32){
-        Event arrival = Event(time, "arrive");
+        Event arrival = Event(time, time, "arrive");
         arrivals.push(arrival);
     }
     
@@ -160,7 +166,7 @@ void bankSimulator(){
             
             // Adjust time to the time of the current event
             timeOfLastEvent = currentTime;
-            currentTime = justFinishing.timeToExpire;
+            currentTime = justFinishing.eventTime;
             
             // Calculate leaving customers total time at bank
             totalWaitTime += (currentTime - justFinishing.arrivalTime);
@@ -176,8 +182,8 @@ void bankSimulator(){
                 // Take event from the arrivals queue and put it in the 'being helped' queue
                 Event newEvent = arrivals.front();
                 arrivals.pop();
-                newEvent.arrivalTime = newEvent.timeToExpire;
-                newEvent.timeToExpire = (processingTime + currentTime);
+                newEvent.arrivalTime = newEvent.eventTime;
+                newEvent.eventTime = (processingTime + currentTime);
                 gettingHelped.push(newEvent);
             }
         }
@@ -193,13 +199,13 @@ void bankSimulator(){
             // Take event from the arrivals queue and put it in the 'being helped' queue
             Event newEvent = arrivals.front();
             arrivals.pop();
-            newEvent.arrivalTime = newEvent.timeToExpire;
-            newEvent.timeToExpire = (processingTime + currentTime);
+            newEvent.arrivalTime = newEvent.eventTime;
+            newEvent.eventTime = (processingTime + currentTime);
             gettingHelped.push(newEvent);
             
             // Adjust time to the time of the current event
             timeOfLastEvent = currentTime;
-            currentTime = newEvent.timeToExpire;
+            currentTime = newEvent.eventTime;
             
             timeTellerSpentIdle += currentTime - timeOfLastEvent;
         }

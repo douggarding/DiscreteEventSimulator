@@ -9,8 +9,9 @@
 #include "Event.hpp"
 
 // Basic constructor
-Event::Event(int timeOfEvent, std::string eventType){
-    timeToExpire = timeOfEvent;
+Event::Event(int _timeOfArrival, int _timeOfEvent, std::string eventType){
+    arrivalTime = _timeOfArrival;
+    eventTime = _timeOfEvent;
     type = eventType;
 }
 
