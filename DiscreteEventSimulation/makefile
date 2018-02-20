@@ -1,4 +1,4 @@
-CFLAGS = -std=c++14 -fsanitize=address,undefined -Wall 
+CFLAGS = -std=c++14 -g -fsanitize=address,undefined -Wall 
 
 simulator: main.cpp event.o
 	clang++ -o simulator $(CFLAGS) $^

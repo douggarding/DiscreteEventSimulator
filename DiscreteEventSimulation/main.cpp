@@ -10,11 +10,17 @@
 #include <queue> // for the priority queue
 #include <stdlib.h> // For random
 #include <time.h> // Time for seeding random
+#include <cmath>
 #include "Event.hpp"
 
 // Forward declare functions
 void bankSimulator();
 void storeSimulator();
+int computeVariance(std::vector<int> values);
+
+// Length of a day in seconds (standard 8 hours = 28800)
+// 100000000 (100,000,000 one hundred million)
+const int DAY_LENGTH = 100000000;
 
 int main(int argc, const char * argv[]) {
     
@@ -41,7 +47,6 @@ int main(int argc, const char * argv[]) {
 
 void storeSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
-    const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
     int currentTime = 0; // Represents current clock time in seconds
     int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
     int cashierIdleTime = 0; // Total time at least one cashier spent idle
@@ -49,15 +54,16 @@ void storeSimulator(){
     int customersServed = 0;
     int cashiers[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::priority_queue<Event, std::vector<Event>, std::greater<Event>> events; // holds all the events
+    std::vector<int> waitTimes;
     
     // Set a customer arrival Event to occur every 32 seconds of the day
-    for(int time = 0; time < 28800; time += 32){
+    for(int time = 0; time < DAY_LENGTH; time += 32){
         Event arrival = Event(time, time, "arrive");
         events.push(arrival);
     }
     
     // Process each event in the priority queue until the day ends
-    while(currentTime < dayLength){
+    while(currentTime < DAY_LENGTH){
         
         // Get whichever event occurs now, and remove it from event queue
         Event event = events.top();
@@ -115,13 +121,16 @@ void storeSimulator(){
         else if (event.type == "leave"){
             customersServed++;
             totalWaitTime += (currentTime - event.arrivalTime);
+            waitTimes.push_back(currentTime - event.arrivalTime);
         }
     } // End while loop simulating a day
     
     std::cout << "STORE SIMULATOR\n";
+    std::cout << "Length of simulation: " << DAY_LENGTH << " seconds = " << DAY_LENGTH / 3600 << " hours = " << DAY_LENGTH / 86400 << " days\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
     std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
-    std::cout << "Time at least one cashier spent idle: " << 100 * cashierIdleTime / dayLength << "%\n";
+    std::cout << "Time at least one cashier spent idle: " << 100 * cashierIdleTime / DAY_LENGTH << "%\n";
+    std::cout << "Variance in customer service time: " << computeVariance(waitTimes) << "\n";
     
 }
 
@@ -137,7 +146,6 @@ void storeSimulator(){
 
 void bankSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
-    const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
     int currentTime = 0; // Represents current clock time in seconds
     int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
     int idleTellerTime = 0; // Total time at least one cashier spent idle
@@ -146,16 +154,17 @@ void bankSimulator(){
     int tellersBusy = 0;
     std::priority_queue<Event, std::vector<Event>, std::greater<Event>> events; // holds all the events
     std::queue<Event> customers;
+    std::vector<int> waitTimes;
     
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
     // Add each of these events to the priority queue of events.
-    for(int time = 0; time < 28800; time += 32){
+    for(int time = 0; time < DAY_LENGTH; time += 32){
         Event arrival = Event(time, time, "arrive");
         events.push(arrival);
     }
     
     // Process each event in the queue until the day runs out of time
-    while(currentTime < dayLength){
+    while(currentTime < DAY_LENGTH){
         
         // Get whichever event occurs now, and remove it from event queue
         Event event = events.top();
@@ -203,6 +212,7 @@ void bankSimulator(){
             tellersBusy--;
             customersServed++;
             totalWaitTime += (currentTime - event.arrivalTime);
+            waitTimes.push_back(currentTime - event.arrivalTime);
             
             // If there's a customer waiting in line
             if(customers.size() > 0){
@@ -223,8 +233,29 @@ void bankSimulator(){
     } // End while loop simulating a day
         
     std::cout << "BANK SIMULATOR\n";
+    std::cout << "Length of simulation: " << DAY_LENGTH << " seconds = " << DAY_LENGTH / 3600 << " hours = " << DAY_LENGTH / 86400 << " days\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
     std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
-    std::cout << "Time at least one teller spent idle: " << 100 * idleTellerTime / dayLength << "%\n";
+    std::cout << "Time at least one teller spent idle: " << 100 * idleTellerTime / DAY_LENGTH << "%\n";
+    std::cout << "Variance in customer service time: " << computeVariance(waitTimes) << "\n";
     
+}
+
+
+int computeVariance(std::vector<int> values){
+    
+    // Get average of all values(x) into 'averageOfValues'
+    long totalOfValues = 0;
+    for(int i = 0; i < values.size(); i++){
+        totalOfValues += values[i];
+    }
+    int averageOfValues = (int) (totalOfValues / values.size());
+    
+    // Compute (x-m)^2 for each value, all added together
+    long totalOfValues2 = 0;
+    for(int i = 0; i < values.size(); i++){
+        totalOfValues2 += pow((values[i] - averageOfValues), 2);
+    }
+    
+    return (int) (totalOfValues2 / values.size());
 }
