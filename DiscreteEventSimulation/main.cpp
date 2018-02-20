@@ -65,7 +65,7 @@ void storeSimulator(){
         
         // Adjust time to the current time (time of event)
         timeOfLastEvent = currentTime;
-        currentTime = event.eventTime;
+        currentTime = event.eventFireTime;
         
         // If a cashier has time less than the current time, they've been idle since the last event.
         // Re-adjust all cashier's times to the current time (reset to zero).
@@ -85,7 +85,7 @@ void storeSimulator(){
         // ******************
         if(event.type == "arrive"){
             
-            // Random number between 30-600, represents how long customer will take with cashier
+            // Random number between 30-600, represents time needed with cashier
             int timeNeededWithCashier = (rand() % 571) + 30;
             
             // Find the cashier line with the shortest wait time. The value contained by each
@@ -104,7 +104,7 @@ void storeSimulator(){
             
             // Add an event for when this customer will finish at checkout. This customer's time
             // will be their processing time + processing time of all customers in front of them
-            event.eventTime = timeNeededWithCashier + timeLeftOfShortLine;
+            event.eventFireTime = timeNeededWithCashier + timeLeftOfShortLine;
             event.type = "leave";
             events.push(event);
         }
@@ -116,7 +116,7 @@ void storeSimulator(){
             customersServed++;
             totalWaitTime += (currentTime - event.arrivalTime);
         }
-    } // End while loop simulating day
+    } // End while loop simulating a day
     
     std::cout << "STORE SIMULATOR\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
@@ -140,82 +140,91 @@ void bankSimulator(){
     const int dayLength = 28800; // Length of day in seconds (28800 seconds = 8 hours)
     int currentTime = 0; // Represents current clock time in seconds
     int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
-    int timeTellerSpentIdle = 0; // Total time at least one cashier spent idle
+    int idleTellerTime = 0; // Total time at least one cashier spent idle
     int timeOfLastEvent = 0;
     int customersServed = 0;
     int tellersBusy = 0;
-    std::priority_queue<Event, std::vector<Event>, std::greater<Event>> gettingHelped; // holds all the events
-    std::queue<Event> arrivals;
+    std::priority_queue<Event, std::vector<Event>, std::greater<Event>> events; // holds all the events
+    std::queue<Event> customers;
     
     // Set a customer arrival Event to occur every 32 seconds of the 28800 second day
     // Add each of these events to the priority queue of events.
     for(int time = 0; time < 28800; time += 32){
         Event arrival = Event(time, time, "arrive");
-        arrivals.push(arrival);
+        events.push(arrival);
     }
     
     // Process each event in the queue until the day runs out of time
     while(currentTime < dayLength){
         
-        // If the tellers are all busy, advance to the next time someone finishes
-        if(tellersBusy == 10){
-            // Get whoever finishes now, and remove it from queue of events
-            Event justFinishing = gettingHelped.top();
-            gettingHelped.pop();
-            tellersBusy--;
+        // Get whichever event occurs now, and remove it from event queue
+        Event event = events.top();
+        events.pop();
+        
+        // Adjust time to the current time (time of event)
+        timeOfLastEvent = currentTime;
+        currentTime = event.eventFireTime;
+        
+        // Check if a teller has been idle since last event
+        if(tellersBusy < 10){
+            idleTellerTime += (currentTime - timeOfLastEvent);
+        }
+        
+        // ******************
+        // PROCESS AN ARRIVAL
+        // ******************
+        if(event.type == "arrive"){
             
-            // Adjust time to the time of the current event
-            timeOfLastEvent = currentTime;
-            currentTime = justFinishing.eventTime;
-            
-            // Calculate leaving customers total time at bank
-            totalWaitTime += (currentTime - justFinishing.arrivalTime);
-            customersServed++;
-            
-            // If there's a customer in line
-            if(arrivals.size() != 0 && arrivals.front().arrivalTime <= currentTime){
+            // If there's an open teller, go to them
+            if(tellersBusy < 10){
+                // Random number between 30-600, represents time needed with teller
+                int timeNeededWithTeller = (rand() % 571) + 30;
+                
+                // Reformat event as a leave event. Set the time this customer will leave
+                event.eventFireTime = currentTime + timeNeededWithTeller;
+                event.type = "leave";
+                events.push(event);
                 tellersBusy++;
-                
-                // Random number between 30-600, reps how long customer will take with cashier
-                int processingTime = (rand() % 571) + 30;
-                
-                // Take event from the arrivals queue and put it in the 'being helped' queue
-                Event newEvent = arrivals.front();
-                arrivals.pop();
-                newEvent.arrivalTime = newEvent.eventTime;
-                newEvent.eventTime = (processingTime + currentTime);
-                gettingHelped.push(newEvent);
             }
-        }
+            
+            // If there's no open teller, jump in the line and wait
+            else{
+                customers.push(event);
+                continue;
+            }
+        } // End arrive event
         
-        // If there's an open teller, advance until there's a customer
-        else if(tellersBusy < 10){
+        // ***************
+        // PROCESS A LEAVE
+        // ***************
+        else if(event.type == "leave"){
             
-            tellersBusy++;
+            // Calculate data for customer leaving
+            tellersBusy--;
+            customersServed++;
+            totalWaitTime += (currentTime - event.arrivalTime);
             
-            // Random number between 30-600, reps how long customer will take with cashier
-            int processingTime = (rand() % 571) + 30;
-            
-            // Take event from the arrivals queue and put it in the 'being helped' queue
-            Event newEvent = arrivals.front();
-            arrivals.pop();
-            newEvent.arrivalTime = newEvent.eventTime;
-            newEvent.eventTime = (processingTime + currentTime);
-            gettingHelped.push(newEvent);
-            
-            // Adjust time to the time of the current event
-            timeOfLastEvent = currentTime;
-            currentTime = newEvent.eventTime;
-            
-            timeTellerSpentIdle += currentTime - timeOfLastEvent;
-        }
+            // If there's a customer waiting in line
+            if(customers.size() > 0){
+                // Random number between 30-600, represents time needed with teller
+                int timeNeededWithTeller = (rand() % 571) + 30;
+                
+                // Reformat event as a leave event. Set the time this customer will leave
+                event = customers.front();
+                customers.pop();
+                event.eventFireTime = currentTime + timeNeededWithTeller;
+                event.type = "leave";
+                events.push(event);
+                tellersBusy++;
+            }
+        } // End leave event
         
-    } // End while loop
+        
+    } // End while loop simulating a day
         
     std::cout << "BANK SIMULATOR\n";
     std::cout << "Number of Customers served: " << customersServed << "\n";
     std::cout << "Average customer service time: " << totalWaitTime / customersServed << "\n";
-    std::cout << "Percent of time at least one cashier spent idle: ";
-    std::cout << 100 * timeTellerSpentIdle / dayLength << "\n";
+    std::cout << "Time at least one teller spent idle: " << 100 * idleTellerTime / dayLength << "%\n";
     
 }

@@ -11,7 +11,7 @@
 // Basic constructor
 Event::Event(int _timeOfArrival, int _timeOfEvent, std::string eventType){
     arrivalTime = _timeOfArrival;
-    eventTime = _timeOfEvent;
+    eventFireTime = _timeOfEvent;
     type = eventType;
 }
 

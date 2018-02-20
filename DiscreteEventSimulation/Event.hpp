@@ -18,7 +18,7 @@ struct Event{
     Event(int timeOfArrival, int timeOfEvent, std::string eventType);
     
     // Member variables
-    int eventTime; // Clock time for when this event should fire and die
+    int eventFireTime; // Clock time for when this event should fire and die
     int arrivalTime; // Time of arrival for this event (or its associated arrive event)
     std::string type; // Type: whether this is an arrive or leave event
 
@@ -27,7 +27,7 @@ struct Event{
 
 // Operator overloading for <
 inline bool operator< (const Event &lhs, const Event &rhs){
-    return lhs.eventTime < rhs.eventTime;
+    return lhs.eventFireTime < rhs.eventFireTime;
 }
 
 // Operator overloading for >
