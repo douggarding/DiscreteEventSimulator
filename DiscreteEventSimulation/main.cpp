@@ -20,7 +20,7 @@ int computeVariance(std::vector<int> values);
 
 // Length of a day in seconds (standard 8 hours = 28800)
 // 100000000 (100,000,000 one hundred million)
-const int DAY_LENGTH = 100000000;
+const int DAY_LENGTH = 10000000;
 
 int main(int argc, const char * argv[]) {
     
@@ -43,8 +43,9 @@ int main(int argc, const char * argv[]) {
 }
 
 
-
-
+/*
+ * Simulator for a supermarket.
+ */
 void storeSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
     int currentTime = 0; // Represents current clock time in seconds
@@ -58,8 +59,7 @@ void storeSimulator(){
     
     // Set a customer arrival Event to occur every 32 seconds of the day
     for(int time = 0; time < DAY_LENGTH; time += 32){
-        Event arrival = Event(time, time, "arrive");
-        events.push(arrival);
+        events.emplace(time, time, "arrive");
     }
     
     // Process each event in the priority queue until the day ends
@@ -135,15 +135,9 @@ void storeSimulator(){
 }
 
 
-
-
-
-
-
-
-
-
-
+/*
+ * Simulator for a bank.
+ */
 void bankSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
     int currentTime = 0; // Represents current clock time in seconds
