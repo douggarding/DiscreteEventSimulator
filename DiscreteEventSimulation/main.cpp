@@ -141,7 +141,7 @@ void storeSimulator(){
 void bankSimulator(){
     srand ( (int) time(NULL) ); // seed the RNG
     int currentTime = 0; // Represents current clock time in seconds
-    int totalWaitTime = 0; // Total time it took each customer from arriving to leaving
+    long totalWaitTime = 0; // Total time it took each customer from arriving to leaving
     int idleTellerTime = 0; // Total time at least one cashier spent idle
     int timeOfLastEvent = 0;
     int customersServed = 0;
